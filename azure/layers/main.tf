@@ -64,3 +64,14 @@ resource "azurerm_storage_blob" "a_file" {
   type                   = "Block"
   source_content         = "Hello, Blob!"
 }
+module "my_api" {
+  # Available inputs: https://github.com/futurice/terraform-utils/tree/master/aws_lambda_api#inputs
+  # Check for updates: https://github.com/futurice/terraform-utils/compare/v11.0...master
+  source = "git::ssh://git@github.com/futurice/terraform-utils.git//aws_lambda_api?ref=v11.0"
+  api_domain             = "api.example.com"
+  lambda_logging_enabled = true
+  # lambda_zip.output_path will be absolute, i.e. different on different machines.
+  # This can cause Terraform to notice differences that aren't actually there, so let's convert it to a relative one.
+  # https://github.com/hashicorp/terraform/issues/7613#issuecomment-332238441
+  function_zipfile = "${substr(data.archive_file.lambda_zip.output_path, length(path.cwd) + 1, -1)}"
+}
